@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+black = "*"
+python-dotenv = "*"
+huggingface-hub = "*"
+openai = "*"
+langchain-openai = "*"
+torch = "*"
+transformers = "*"
+google-cloud-aiplatform = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
