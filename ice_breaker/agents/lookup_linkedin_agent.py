@@ -10,7 +10,7 @@ def lookup_linkedin(name: str) -> str:
     llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
     template = """
  		Given a full name {person_name}, I want you to look up for me their LinkedIn profile.
-   		Your answer should contain only the LinkedIn URL."""
+   		Your answer should contain only the LinkedIn URL, no additional text."""
 
     tools = [
         Tool(

@@ -10,7 +10,7 @@ def scrape_linkedin_profile(url: str):
     api_endpoint = "https://nubela.co/proxycurl/api/v2/linkedin"
     header_dict = {"Authorization": f"Bearer {os.getenv('PROXYCURL_TOKEN')}"}
     params = {
-        "linkedin_profile_url": "https://www.linkedin.com/in/lexfridman/",
+        "linkedin_profile_url": url,
         "extra": "include",
         "github_profile_id": "include",
         "facebook_profile_id": "include",

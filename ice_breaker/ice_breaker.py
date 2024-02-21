@@ -12,6 +12,7 @@ from transformers import AutoTokenizer
 from agents.lookup_linkedin_agent import lookup_linkedin
 
 from third_parties.linkedin import scrape_linkedin_profile, get_sample_linkedin_profile
+from output_parser import PersonIntel, person_intel_parser
 
 # def hf_pipeline_helper():
 
@@ -35,14 +36,21 @@ from third_parties.linkedin import scrape_linkedin_profile, get_sample_linkedin_
 # hf_llm = VertexAI()
 
 
-def simple_summary():
+def simple_summary() -> PersonIntel:
     summary_template = """
 	given the following information {information} about a person I want you to create:
 	1. a short summary of the person
 	2. two interesting facts about the person
+    3. a topic that may interest the person
+    4. 2 creative ice breakers to open a conversation with the person
+                \n{format_instructions}
 	"""
     summary_prompt_template = PromptTemplate(
-        input_variables=["information"], template=summary_template
+        input_variables=["information"],
+        template=summary_template,
+        partial_variables={
+            "format_instructions": person_intel_parser.get_format_instructions()
+        },
     )
     # TO DO: download a model from hfh/ use huggingchat api/
     repo_id = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
@@ -60,8 +68,10 @@ def simple_summary():
     # linkedin_data = get_sample_linkedin_profile()
     # res = hf_chain.run(information=linkedin_data)
     # print(res)
-    res = openai_chain.invoke(input={"information": linkedin_data})
-    print(res.get("text"))
+    res = openai_chain.run(information=linkedin_data)
+    parsed_res = person_intel_parser.parse(res)
+    return parsed_res
+    print(res)
 
 
 if __name__ == "__main__":
