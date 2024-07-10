@@ -12,6 +12,8 @@ langchain-openai = "*"
 torch = "*"
 transformers = "*"
 google-cloud-aiplatform = "*"
+langchain-huggingface = "*"
+langchain-community = "*"
 
 [dev-packages]
 
