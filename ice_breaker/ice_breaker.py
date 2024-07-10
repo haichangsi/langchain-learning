@@ -1,22 +1,16 @@
+import os
+import json
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_community.chat_models import ChatOpenAI
 from langchain_community.llms import HuggingFaceHub
 from langchain.chains import LLMChain
-import os
-import json
+from huggingface_hub import InferenceClient
+from langchain_huggingface import HuggingFacePipeline
 
-import torch
-import transformers
-from transformers import AutoTokenizer
 from agents.lookup_linkedin_agent import lookup_linkedin
-
 from third_parties.linkedin import scrape_linkedin_profile
 from output_parser import PersonIntel, person_intel_parser
-
-from langchain_huggingface import HuggingFacePipeline
-from huggingface_hub import InferenceClient
-
 
 def simple_summary() -> PersonIntel:
     summary_template = """
