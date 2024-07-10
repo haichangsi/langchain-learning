@@ -2,6 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from langchain_community.chat_models import ChatOpenAI
 from langchain_community.chat_models import ChatOllama
 from langchain_community.llms import HuggingFaceHub
@@ -83,7 +84,7 @@ def summary_ollama():
     summary_prompt_template = create_prompt_template()
     llama_llm = ChatOllama(model="llama3")
     
-    chain = summary_prompt_template | llama_llm
+    chain = summary_prompt_template | llama_llm | StrOutputParser
     
     linkedin_profile_url = "mock"
     linkedin_data = scrape_linkedin_profile(url=linkedin_profile_url)
