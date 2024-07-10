@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_community.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
 from langchain_community.llms import HuggingFaceHub
 from langchain.chains import LLMChain
 from huggingface_hub import InferenceClient
@@ -12,7 +13,7 @@ from agents.lookup_linkedin_agent import lookup_linkedin
 from third_parties.linkedin import scrape_linkedin_profile
 from output_parser import PersonIntel, person_intel_parser
 
-def simple_summary() -> PersonIntel:
+def create_prompt_template():
     summary_template = """
 	given the following information {information} about a person I want you to create:
 	1. a short summary
@@ -28,6 +29,11 @@ def simple_summary() -> PersonIntel:
             "format_instructions": person_intel_parser.get_format_instructions()
         },
     )
+    
+    return summary_prompt_template
+
+def simple_summary() -> PersonIntel:
+    summary_prompt_template = create_prompt_template()
 
     openai_llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
@@ -73,6 +79,17 @@ def hf_inference_client():
     response_text = json.loads(response.decode())[0]["generated_text"]
     print(response_text)
     
+def summary_ollama():
+    summary_prompt_template = create_prompt_template()
+    llama_llm = ChatOllama(model="llama3")
+    
+    chain = summary_prompt_template | llama_llm
+    
+    linkedin_profile_url = "mock"
+    linkedin_data = scrape_linkedin_profile(url=linkedin_profile_url)
+    
+    res = chain.invoke(input={"information": linkedin_data})
+    print(res)
     
 # def hf_summary_from_model_id():
 #     llm = HuggingFacePipeline.from_model_id(
@@ -91,4 +108,5 @@ if __name__ == "__main__":
     load_dotenv()
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HFH_API_TOKEN")
     # simple_summary()
-    print(hf_inference_client())
+    # print(hf_inference_client())
+    summary_ollama()
