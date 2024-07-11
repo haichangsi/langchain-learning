@@ -12,8 +12,10 @@ from agents.lookup_linkedin_agent import lookup_linkedin
 from third_parties.linkedin import scrape_linkedin_profile
 from output_parser import PersonIntel, person_intel_parser
 
+from typing import Tuple
 
-def ice_breaker(model: str, name: str = "mock"):
+
+def ice_breaker(model: str, name: str = "mock") -> Tuple[PersonIntel, str]:
     summary_prompt_template = create_prompt_template()
 
     if name == "mock":
@@ -34,6 +36,7 @@ def ice_breaker(model: str, name: str = "mock"):
 
     result = model_functions[model](summary_prompt_template, linkedin_data)
     print(result)
+    return result, profile_url
 
 
 def create_prompt_template():
@@ -43,7 +46,7 @@ def create_prompt_template():
 	2. two interesting facts about them
     3. a topic that may interest the person
     4. 2 creative ice breakers to open a conversation with the person
-                \n{format_instructions}
+    \n{format_instructions}
 	"""
     summary_prompt_template = PromptTemplate(
         input_variables=["information"],
@@ -59,10 +62,9 @@ def create_prompt_template():
 def gpt_summary(prompt_template, data) -> PersonIntel:
     openai_llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
-    chain = prompt_template | openai_llm | StrOutputParser()
-    res = chain.invoke(input={"information": data})
-    print(res)
-    # parsed_res = person_intel_parser.parse(res)
+    chain = prompt_template | openai_llm | person_intel_parser
+    res: PersonIntel = chain.invoke(input={"information": data})
+
     return res
 
 
@@ -82,17 +84,19 @@ def hf_inference_client(prompt_template, data):
     )
 
     response_text = json.loads(response.decode())[0]["generated_text"]
-    print(response_text)
+
+    return response_text
 
 
-def ollama_summary(prompt_template, data, model="llama3"):
+def ollama_summary(prompt_template, data, model="llama3") -> PersonIntel:
     # Ollama supports multiple models like Llama3 or Mistral
     llama_llm = ChatOllama(model=model)
 
-    chain = prompt_template | llama_llm | StrOutputParser
+    chain = prompt_template | llama_llm | person_intel_parser
 
-    res = chain.invoke(input={"information": data})
-    print(res)
+    res: PersonIntel = chain.invoke(input={"information": data})
+
+    return res
 
 
 # def hf_summary_from_model_id():
