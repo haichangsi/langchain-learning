@@ -5,14 +5,34 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.chat_models import ChatOpenAI
 from langchain_community.chat_models import ChatOllama
-from langchain_community.llms import HuggingFaceHub
-from langchain.chains import LLMChain
 from huggingface_hub import InferenceClient
 from langchain_huggingface import HuggingFacePipeline
 
 from agents.lookup_linkedin_agent import lookup_linkedin
 from third_parties.linkedin import scrape_linkedin_profile
 from output_parser import PersonIntel, person_intel_parser
+
+def ice_breaker(model: str, name: str="mock"):
+    summary_prompt_template = create_prompt_template()
+    
+    if name == "mock":
+        profile_url = "mock"
+    else:
+        profile_url = lookup_linkedin(name)
+        
+    linkedin_data = scrape_linkedin_profile(url=profile_url)
+    
+    model_functions = {
+        'gpt': gpt_summary,
+        'hf_inference': hf_inference_client,
+        'ollama': ollama_summary
+    }
+
+    if model not in model_functions:
+        model = 'gpt'
+        
+    result = model_functions[model](summary_prompt_template, linkedin_data)
+    print(result)
 
 def create_prompt_template():
     summary_template = """
@@ -33,40 +53,22 @@ def create_prompt_template():
     
     return summary_prompt_template
 
-def simple_summary() -> PersonIntel:
-    summary_prompt_template = create_prompt_template()
-
+def gpt_summary(prompt_template, data) -> PersonIntel:
     openai_llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
-    # hf_chain = LLMChain(prompt=summary_prompt_template, llm=llm, verbose=True)
-    openai_chain = LLMChain(llm=openai_llm, prompt=summary_prompt_template)
-
-    linkedin_profile_url = "mock"
-    linkedin_data = scrape_linkedin_profile(url=linkedin_profile_url)
-    res = openai_chain.invoke(input={"information": linkedin_data})
+    chain = prompt_template | openai_llm | StrOutputParser()
+    res = chain.invoke(input={"information": data})
     print(res)
     # parsed_res = person_intel_parser.parse(res)
     return res
 
-def hf_inference_client():
-    summary_template = """
-	given the following information {information} about a person I want you to create:
-	1. a short summary
-	2. two interesting facts about them
-	"""
-    summary_prompt_template = PromptTemplate(
-        input_variables=["information"],
-        template=summary_template,
-    )
+def hf_inference_client(prompt_template, data):
     
     repo_id = "meta-llama/Meta-Llama-3-8B-Instruct"
     llm_client = InferenceClient(model=repo_id, timeout=120)
     
-    linkedin_profile_url = "mock"
-    linkedin_data = scrape_linkedin_profile(url=linkedin_profile_url)
-    
-    summary_prompt = summary_template.format(
-        information=linkedin_data
+    summary_prompt = prompt_template.format(
+        information=data
     )
     
     response = llm_client.post(
@@ -80,16 +82,13 @@ def hf_inference_client():
     response_text = json.loads(response.decode())[0]["generated_text"]
     print(response_text)
     
-def summary_ollama():
-    summary_prompt_template = create_prompt_template()
-    llama_llm = ChatOllama(model="llama3")
+def ollama_summary(prompt_template, data, model="llama3"):
+    # Ollama supports multiple models like Llama3 or Mistral
+    llama_llm = ChatOllama(model=model)
     
-    chain = summary_prompt_template | llama_llm | StrOutputParser
+    chain = prompt_template | llama_llm | StrOutputParser
     
-    linkedin_profile_url = "mock"
-    linkedin_data = scrape_linkedin_profile(url=linkedin_profile_url)
-    
-    res = chain.invoke(input={"information": linkedin_data})
+    res = chain.invoke(input={"information": data})
     print(res)
     
 # def hf_summary_from_model_id():
@@ -108,6 +107,6 @@ def summary_ollama():
 if __name__ == "__main__":
     load_dotenv()
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HFH_API_TOKEN")
-    # simple_summary()
-    # print(hf_inference_client())
-    summary_ollama()
+    ice_breaker("gpt", "mock")
+    # ice_breaker("hf_inference", "mock")
+    # ice_breaker("ollama", "mock")
