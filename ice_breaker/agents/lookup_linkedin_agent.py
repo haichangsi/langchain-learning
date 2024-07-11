@@ -3,7 +3,7 @@ from langchain_community.chat_models import ChatOpenAI
 
 from langchain.agents import initialize_agent, Tool, AgentType
 
-from tools.tools import get_profile_url
+from ice_breaker.tools.tools import get_profile_url
 
 
 def lookup_linkedin(name: str) -> str:

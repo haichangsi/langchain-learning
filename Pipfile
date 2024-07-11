@@ -14,6 +14,7 @@ transformers = "*"
 google-cloud-aiplatform = "*"
 langchain-huggingface = "*"
 langchain-community = "*"
+flask = "*"
 
 [dev-packages]
 

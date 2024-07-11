@@ -8,14 +8,14 @@ from langchain_community.chat_models import ChatOllama
 from huggingface_hub import InferenceClient
 from langchain_huggingface import HuggingFacePipeline
 
-from agents.lookup_linkedin_agent import lookup_linkedin
-from third_parties.linkedin import scrape_linkedin_profile
-from output_parser import PersonIntel, person_intel_parser
+from ice_breaker.agents.lookup_linkedin_agent import lookup_linkedin
+from ice_breaker.third_parties.linkedin import scrape_linkedin_profile
+from ice_breaker.output_parser import PersonIntel, person_intel_parser
 
 from typing import Tuple
 
 
-def ice_breaker(model: str, name: str = "mock") -> Tuple[PersonIntel, str]:
+def ice_breaker_main(model: str, name: str = "mock") -> Tuple[PersonIntel, str]:
     summary_prompt_template = create_prompt_template()
 
     if name == "mock":
@@ -36,7 +36,7 @@ def ice_breaker(model: str, name: str = "mock") -> Tuple[PersonIntel, str]:
 
     result = model_functions[model](summary_prompt_template, linkedin_data)
     print(result)
-    return result, profile_url
+    return result, linkedin_data.get("profile_pic_url")
 
 
 def create_prompt_template():
@@ -115,6 +115,6 @@ def ollama_summary(prompt_template, data, model="llama3") -> PersonIntel:
 if __name__ == "__main__":
     load_dotenv()
     os.environ["HUGGINGFACEHUB_API_TOKEN"] = os.getenv("HFH_API_TOKEN")
-    ice_breaker("gpt", "mock")
-    # ice_breaker("hf_inference", "mock")
-    # ice_breaker("ollama", "mock")
+    ice_breaker_main("gpt", "mock")
+    # ice_breaker_main("hf_inference", "mock")
+    # ice_breaker_main("ollama", "mock")
