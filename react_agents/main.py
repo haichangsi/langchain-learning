@@ -8,6 +8,8 @@ from langchain.tools.render import render_text_description
 from langchain_openai import ChatOpenAI
 from langchain.schema import AgentAction, AgentFinish
 from langchain.tools import Tool
+from callbacks import AgentCallbackHandler
+
 
 load_dotenv()
 
@@ -57,7 +59,9 @@ if __name__ == "__main__":
         tools=render_text_description(tools),
         tool_names=", ".join([t.name for t in tools]),
     )
-    llm = ChatOpenAI(temperature=0, stop=["\nObservation"])
+    llm = ChatOpenAI(
+        temperature=0, stop=["\nObservation"], callbacks=[AgentCallbackHandler()]
+    )
     intermediate_steps = []
 
     agent = (
