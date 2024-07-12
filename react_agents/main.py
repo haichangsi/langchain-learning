@@ -77,24 +77,22 @@ if __name__ == "__main__":
     # possible parsing error 'langchain_core.exceptions.OutputParserException:
     # Parsing LLM output produced both a final answer and a parse-able action'
     text = "What is the length of Hello, World!"
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {"input": text, "agent_scratchpad": intermediate_steps}
-    )
-    # print(agent_step)
 
-    if isinstance(agent_step, AgentAction):
-        tool_name = agent_step.tool
-        tool_to_use = find_tool_by_name(tools, tool_name)
-        tool_input = agent_step.tool_input
+    agent_step = ""
+    while not isinstance(agent_step, AgentFinish):
+        agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+            {"input": text, "agent_scratchpad": intermediate_steps}
+        )
+        # print(agent_step)
 
-        observation = tool_to_use.func(str(tool_input))
-        print(f"{observation=}")
-        intermediate_steps.append((agent_step, str(observation)))
+        if isinstance(agent_step, AgentAction):
+            tool_name = agent_step.tool
+            tool_to_use = find_tool_by_name(tools, tool_name)
+            tool_input = agent_step.tool_input
 
-    # for this simple example that is probably an AgentFinish
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {"input": text, "agent_scratchpad": intermediate_steps}
-    )
+            observation = tool_to_use.func(str(tool_input))
+            print(f"{observation=}")
+            intermediate_steps.append((agent_step, str(observation)))
 
     if isinstance(agent_step, AgentFinish):
         print(agent_step.return_values)
