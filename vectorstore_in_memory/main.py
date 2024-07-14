@@ -28,3 +28,15 @@ if __name__ == "__main__":
     new_vector_store = FAISS.load_local(
         "faiss_index_reAct_paper", embeddings, allow_dangerous_deserialization=True
     )
+
+    retireval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+    combine_docs_chain = create_stuff_documents_chain(
+        OpenAI(), retireval_qa_chat_prompt
+    )
+    retrieval_chain = create_retrieval_chain(
+        new_vector_store.as_retriever(), combine_docs_chain
+    )
+    res = retrieval_chain.invoke(
+        input={"input": "Give me the gist of ReAct in 3 sentences"}
+    )
+    print(res["answer"])

@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 Pipfile.lock
+
+faiss_index_reAct_paper/
