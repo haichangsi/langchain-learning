@@ -69,7 +69,6 @@ def gpt_summary(prompt_template, data) -> PersonIntel:
 
 
 def hf_inference_client(prompt_template, data):
-
     repo_id = "meta-llama/Meta-Llama-3-8B-Instruct"
     llm_client = InferenceClient(model=repo_id, timeout=120)
 
